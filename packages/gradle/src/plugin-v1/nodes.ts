@@ -56,6 +56,10 @@ function normalizeOptions(options: GradlePluginOptions): GradlePluginOptions {
 
 type GradleTargets = Record<string, Partial<ProjectConfiguration>>;
 
+/**
+ * @deprecated The `@nx/gradle/plugin-v1` entry is deprecated and will be removed in Nx 24.
+ * Switch to the default `@nx/gradle` plugin.
+ */
 export const createNodesV2: CreateNodesV2<GradlePluginOptions> = [
   gradleConfigAndTestGlob,
   async (files, options, context) => {
@@ -92,7 +96,7 @@ export const createNodesV2: CreateNodesV2<GradlePluginOptions> = [
         context
       );
     } finally {
-      pluginCache.writeToDisk(cachePath);
+      pluginCache.writeToDisk();
     }
   },
 ];
@@ -100,7 +104,7 @@ export const createNodesV2: CreateNodesV2<GradlePluginOptions> = [
 export const makeCreateNodesForGradleConfigFile =
   (
     gradleReport: GradleReport,
-    pluginCache: PluginCache<Partial<ProjectConfiguration>> = new PluginCache(),
+    pluginCache: PluginCache<Partial<ProjectConfiguration>>,
     gradleProjectRootToTestFilesMap: Record<string, string[]> = {}
   ) =>
   async (

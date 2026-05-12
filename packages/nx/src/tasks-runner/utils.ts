@@ -205,23 +205,7 @@ export function normalizeTargetDependencyWithStringProjects(
   dependencyConfig: TargetDependencyConfig
 ): Omit<TargetDependencyConfig, 'projects'> & { projects: string[] } {
   if (typeof dependencyConfig.projects === 'string') {
-    /** LERNA SUPPORT START - Remove in v20 */
-    // Lerna uses `dependencies` in `prepNxOptions`, so we need to maintain
-    // support for it until lerna can be updated to use the syntax.
-    //
-    // This should have been removed in v17, but the updates to lerna had not
-    // been made yet.
-    //
-    // TODO(@agentender): Remove this part in v20
-    if (dependencyConfig.projects === 'self') {
-      delete dependencyConfig.projects;
-    } else if (dependencyConfig.projects === 'dependencies') {
-      dependencyConfig.dependencies = true;
-      delete dependencyConfig.projects;
-      /** LERNA SUPPORT END - Remove in v20 */
-    } else {
-      dependencyConfig.projects = [dependencyConfig.projects];
-    }
+    dependencyConfig.projects = [dependencyConfig.projects];
   }
   return dependencyConfig as Omit<TargetDependencyConfig, 'projects'> & {
     projects: string[];
@@ -325,7 +309,9 @@ export function getOutputsForTargetAndConfiguration(
     'id' in taskTargetOrTask ? taskTargetOrTask.target : taskTargetOrTask;
   const overrides =
     'id' in taskTargetOrTask ? taskTargetOrTask.overrides : overridesOrNode;
-  node = 'id' in taskTargetOrTask ? overridesOrNode : node;
+  node = (
+    'id' in taskTargetOrTask ? overridesOrNode : node
+  ) as ProjectGraphProjectNode;
 
   const { target, configuration } = taskTarget;
 
@@ -582,8 +568,13 @@ export function getCliPath() {
   return require.resolve(`../../bin/run-executor.js`);
 }
 
+export function getUnparsedOverrideArgs(task: Task): string[] {
+  return (task.overrides as { __overrides_unparsed__: string[] })
+    .__overrides_unparsed__;
+}
+
 export function getPrintableCommandArgsForTask(task: Task) {
-  const args: string[] = task.overrides['__overrides_unparsed__'];
+  const args = getUnparsedOverrideArgs(task);
 
   const target = task.target.target.includes(':')
     ? `"${task.target.target}"`
